@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线图片编辑器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- 顶部工具栏 -->
+    <header class="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-6">
+            <h1 class="text-xl font-bold text-blue-400">
+                <i class="fas fa-image mr-2"></i>在线图片编辑器
+            </h1>
+            <div class="flex space-x-2">
+                <button id="btn-open" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition">
+                    <i class="fas fa-folder-open mr-1"></i>打开图片
+                </button>
+                <button id="btn-save" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium transition">
+                    <i class="fas fa-download mr-1"></i>导出图片
+                </button>
+                <button id="btn-reset" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm font-medium transition">
+                    <i class="fas fa-undo mr-1"></i>重置
+                </button>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="image-info" class="text-sm text-gray-400"></span>
+            <span id="undo-count" class="text-sm text-gray-400"></span>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <div class="flex h-[calc(100vh-60px)]">
+        <!-- 左侧工具栏 -->
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 overflow-y-auto p-4">
+            <div class="space-y-6">
+                <!-- 基本操作 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">基本操作</h3>
+                    <div class="space-y-2">
+                        <button id="tool-rotate-cw" class="w-full bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm text-left transition">
+                            <i class="fas fa-redo mr-2"></i>顺时针旋转
+                        </button>
+                        <button id="tool-rotate-ccw" class="w-full bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm text-left transition">
+                            <i class="fas fa-undo mr-2"></i>逆时针旋转
+                        </button>
+                        <button id="tool-flip-h" class="w-full bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm text-left transition">
+                            <i class="fas fa-arrows-alt-h mr-2"></i>水平翻转
+                        </button>
+                        <button id="tool-flip-v" class="w-full bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm text-left transition">
+                            <i class="fas fa-arrows-alt-v mr-2"></i>垂直翻转
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 尺寸调整 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">尺寸调整</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">宽度</label>
+                            <input type="number" id="resize-width" class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                            <span class="text-sm text-gray-400">px</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">高度</label>
+                            <input type="number" id="resize-height" class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                            <span class="text-sm text-gray-400">px</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="resize-constrain" checked class="rounded">
+                            <label class="text-sm text-gray-300">保持比例</label>
+                        </div>
+                        <button id="tool-resize" class="w-full bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition">
+                            应用尺寸调整
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 裁剪 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">裁剪</h3>
+                    <div class="space-y-2">
+                        <button id="tool-crop-start" class="w-full bg-yellow-600 hover:bg-yellow-700 px-3 py-2 rounded text-sm transition">
+                            <i class="fas fa-crop mr-2"></i>开始裁剪
+                        </button>
+                        <button id="tool-crop-apply" class="w-full bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-sm transition hidden">
+                            <i class="fas fa-check mr-2"></i>应用裁剪
+                        </button>
+                        <button id="tool-crop-cancel" class="w-full bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm transition hidden">
+                            <i class="fas fa-times mr-2"></i>取消裁剪
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 文字添加 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">添加文字</h3>
+                    <div class="space-y-3">
+                        <textarea id="text-content" rows="2" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500" placeholder="输入文字..."></textarea>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">字体</label>
+                            <select id="text-font" class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                                <option value="Arial">Arial</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Courier New">Courier New</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">大小</label>
+                            <input type="number" id="text-size" value="32" min="8" max="200" class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">颜色</label>
+                            <input type="color" id="text-color" value="#ffffff" class="w-12 h-8 rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">粗细</label>
+                            <select id="text-weight" class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                                <option value="normal">正常</option>
+                                <option value="bold">粗体</option>
+                            </select>
+                        </div>
+                        <button id="tool-add-text" class="w-full bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-sm transition">
+                            <i class="fas fa-font mr-2"></i>添加文字
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 内置文字版式 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">文字版式</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="text-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-template="watermark">
+                            <div class="text-blue-300 font-bold">水印</div>
+                            <div class="text-gray-400">底部居中</div>
+                        </button>
+                        <button class="text-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-template="title">
+                            <div class="text-green-300 font-bold">标题</div>
+                            <div class="text-gray-400">顶部居中</div>
+                        </button>
+                        <button class="text-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-template="corner">
+                            <div class="text-yellow-300 font-bold">角标</div>
+                            <div class="text-gray-400">右下角</div>
+                        </button>
+                        <button class="text-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-template="full">
+                            <div class="text-red-300 font-bold">全屏</div>
+                            <div class="text-gray-400">居中大号</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 边框 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">边框设置</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">宽度</label>
+                            <input type="number" id="border-width" value="10" min="1" max="100" class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                            <span class="text-sm text-gray-400">px</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm text-gray-300 w-12">颜色</label>
+                            <input type="color" id="border-color" value="#000000" class="w-12 h-8 rounded cursor-pointer">
+                        </div>
+                        <button id="tool-add-border" class="w-full bg-orange-600 hover:bg-orange-700 px-3 py-2 rounded text-sm transition">
+                            <i class="fas fa-square mr-2"></i>添加边框
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 内置边框 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">内置边框</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="border-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-border="polaroid">
+                            <div class="h-12 bg-white flex items-end justify-center pb-1">
+                                <div class="w-8 h-1 bg-gray-300"></div>
+                            </div>
+                            <div class="mt-1 text-gray-300">宝丽来</div>
+                        </button>
+                        <button class="border-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-border="instant">
+                            <div class="h-12 bg-white border-4 border-gray-800 flex items-center justify-center">
+                                <div class="w-6 h-4 bg-gray-200"></div>
+                            </div>
+                            <div class="mt-1 text-gray-300">拍立得</div>
+                        </button>
+                        <button class="border-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-border="vintage">
+                            <div class="h-12 bg-amber-100 border-2 border-amber-600 flex items-center justify-center">
+                                <div class="w-6 h-4 bg-amber-200"></div>
+                            </div>
+                            <div class="mt-1 text-gray-300">复古</div>
+                        </button>
+                        <button class="border-template bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs transition" data-border="shadow">
+                            <div class="h-12 bg-white shadow-lg border border-gray-200 flex items-center justify-center">
+                                <div class="w-6 h-4 bg-gray-200"></div>
+                            </div>
+                            <div class="mt-1 text-gray-300">阴影</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 中间画布区域 -->
+        <main class="flex-1 bg-gray-900 overflow-auto flex items-center justify-center p-8" id="canvas-container">
+            <div class="relative">
+                <canvas id="main-canvas" class="max-w-full max-h-full border border-gray-600 shadow-2xl"></canvas>
+                <canvas id="overlay-canvas" class="absolute top-0 left-0 pointer-events-none" style="display: none;"></canvas>
+            </div>
+        </main>
+
+        <!-- 右侧工具面板 -->
+        <aside class="w-64 bg-gray-800 border-l border-gray-700 overflow-y-auto p-4">
+            <!-- 素材 -->
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">自定义素材</h3>
+                    <div class="space-y-2">
+                        <button id="btn-add-sticker" class="w-full bg-cyan-600 hover:bg-cyan-700 px-3 py-2 rounded text-sm transition">
+                            <i class="fas fa-plus mr-2"></i>添加素材图片
+                        </button>
+                        <div id="custom-stickers" class="grid grid-cols-3 gap-2 mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- 内置素材 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">内置素材</h3>
+                    <div class="space-y-4">
+                        <!-- 形状素材 -->
+                        <div>
+                            <h4 class="text-xs text-gray-400 mb-2">基本形状</h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="circle">
+                                    <div class="w-6 h-6 rounded-full bg-blue-400"></div>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="square">
+                                    <div class="w-6 h-6 bg-green-400"></div>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="triangle">
+                                    <div class="w-0 h-0 border-l-[12px] border-r-[12px] border-b-[24px] border-l-transparent border-r-transparent border-b-yellow-400"></div>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="heart">
+                                    <span class="text-red-400 text-2xl">&hearts;</span>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="star">
+                                    <span class="text-yellow-400 text-2xl">&#9733;</span>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="arrow">
+                                    <span class="text-purple-400 text-xl">&rarr;</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 装饰素材 -->
+                        <div>
+                            <h4 class="text-xs text-gray-400 mb-2">装饰元素</h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="blur-circle">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 opacity-70 blur-sm"></div>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="line-h">
+                                    <div class="w-full h-1 bg-cyan-400"></div>
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center" data-sticker="sparkle">
+                                    <span class="text-yellow-300 text-2xl">&#10022;</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 表情符号 -->
+                        <div>
+                            <h4 class="text-xs text-gray-400 mb-2">表情符号</h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center text-2xl" data-emoji="😀">
+                                    😀
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center text-2xl" data-emoji="❤️">
+                                    ❤️
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center text-2xl" data-emoji="👍">
+                                    👍
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center text-2xl" data-emoji="🎉">
+                                    🎉
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center text-2xl" data-emoji="🌟">
+                                    🌟
+                                </button>
+                                <button class="sticker-btn bg-gray-700 hover:bg-gray-600 p-2 rounded transition aspect-square flex items-center justify-center text-2xl" data-emoji="💎">
+                                    💎
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图片拼接 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">图片拼接</h3>
+                    <div class="space-y-3">
+                        <button id="btn-add-merge-image" class="w-full bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded text-sm transition">
+                            <i class="fas fa-images mr-2"></i>添加拼接图片
+                        </button>
+                        <div id="merge-images-list" class="space-y-2"></div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-gray-400">拼接方向</label>
+                            <div class="flex space-x-2">
+                                <button id="merge-h" class="flex-1 bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm transition bg-blue-600">
+                                    水平
+                                </button>
+                                <button id="merge-v" class="flex-1 bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm transition">
+                                    垂直
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-gray-400">间距 (px)</label>
+                            <input type="number" id="merge-gap" value="0" min="0" max="100" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-gray-400">背景颜色</label>
+                            <input type="color" id="merge-bg" value="#000000" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                        <button id="tool-merge" class="w-full bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded text-sm transition">
+                            <i class="fas fa-object-group mr-2"></i>执行拼接
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" id="file-input" accept="image/*" class="hidden">
+    <input type="file" id="sticker-input" accept="image/*" class="hidden">
+    <input type="file" id="merge-input" accept="image/*" multiple class="hidden">
+
+    <!-- 导出对话框 -->
+    <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-6 w-96 max-w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">导出图片</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">格式</label>
+                    <select id="export-format" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="png">PNG (无损)</option>
+                        <option value="jpeg">JPEG (有损)</option>
+                        <option value="webp">WebP</option>
+                    </select>
+                </div>
+                <div id="quality-container">
+                    <label class="block text-sm text-gray-400 mb-2">质量: <span id="quality-value">0.9</span></label>
+                    <input type="range" id="export-quality" min="0.1" max="1" step="0.1" value="0.9" class="w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">文件名</label>
+                    <input type="text" id="export-filename" value="edited-image" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button id="cancel-export" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded text-sm transition">
+                    取消
+                </button>
+                <button id="confirm-export" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm transition">
+                    下载
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
