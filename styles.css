@@ -1,0 +1,264 @@
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Canvas区域样式 */
+#canvas-container {
+    background-image: 
+        linear-gradient(45deg, #374151 25%, transparent 25%),
+        linear-gradient(-45deg, #374151 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #374151 75%),
+        linear-gradient(-45deg, transparent 75%, #374151 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* 裁剪选择框样式 */
+.crop-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border: 2px solid #3b82f6;
+    border-radius: 2px;
+    cursor: grab;
+}
+
+.crop-handle.top-left { top: -5px; left: -5px; cursor: nwse-resize; }
+.crop-handle.top-right { top: -5px; right: -5px; cursor: nesw-resize; }
+.crop-handle.bottom-left { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.crop-handle.bottom-right { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.crop-handle.top { top: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.crop-handle.bottom { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.crop-handle.left { left: -5px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+.crop-handle.right { right: -5px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+
+.crop-overlay {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.crop-selection {
+    position: absolute;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    cursor: move;
+}
+
+/* 文字对象样式 */
+.text-object {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+    white-space: nowrap;
+    border: 1px dashed transparent;
+}
+
+.text-object:hover,
+.text-object.selected {
+    border-color: #3b82f6;
+}
+
+.text-object .resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #3b82f6;
+    border-radius: 2px;
+    cursor: se-resize;
+    right: -5px;
+    bottom: -5px;
+    display: none;
+}
+
+.text-object.selected .resize-handle {
+    display: block;
+}
+
+.text-object .delete-btn {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #ef4444;
+    border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    right: -10px;
+    top: -10px;
+    display: none;
+}
+
+.text-object.selected .delete-btn {
+    display: flex;
+}
+
+/* 贴纸对象样式 */
+.sticker-object {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+}
+
+.sticker-object img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.sticker-object .resize-handle {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: se-resize;
+    right: -8px;
+    bottom: -8px;
+    border: 2px solid white;
+    display: none;
+}
+
+.sticker-object.selected .resize-handle {
+    display: block;
+}
+
+.sticker-object .delete-btn {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #ef4444;
+    border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    right: -10px;
+    top: -10px;
+    display: none;
+}
+
+.sticker-object.selected .delete-btn {
+    display: flex;
+}
+
+/* 拼接图片缩略图 */
+.merge-thumbnail {
+    position: relative;
+    display: inline-block;
+    margin: 4px;
+}
+
+.merge-thumbnail img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid #4b5563;
+}
+
+.merge-thumbnail .remove-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background: #ef4444;
+    border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* 自定义贴纸缩略图 */
+.custom-sticker {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+}
+
+.custom-sticker img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.custom-sticker:hover {
+    outline: 2px solid #3b82f6;
+}
+
+/* 按钮激活状态 */
+.btn-active {
+    background-color: #3b82f6 !important;
+}
+
+/* 过渡动画 */
+.transition-all {
+    transition: all 0.2s ease;
+}
+
+/* 工具提示 */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #1f2937;
+    color: white;
+    font-size: 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+}
+
+/* 加载状态 */
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* 禁用状态 */
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
