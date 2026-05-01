@@ -21,7 +21,7 @@ class PhotoEditor {
         this.selectedStickerObject = null;
         this.customStickers = [];
         
-        this.mergeImages = [];
+        this.imagesToMerge = [];
         this.mergeDirection = 'horizontal';
         
         this.isDragging = false;
@@ -1318,7 +1318,7 @@ class PhotoEditor {
                     src: e.target.result,
                     element: img
                 };
-                this.mergeImages.push(mergeItem);
+                this.imagesToMerge.push(mergeItem);
                 this.renderMergeList();
             };
             img.src = e.target.result;
@@ -1330,7 +1330,7 @@ class PhotoEditor {
         const container = document.getElementById('merge-images-list');
         container.innerHTML = '';
         
-        this.mergeImages.forEach((item, index) => {
+        this.imagesToMerge.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'merge-thumbnail';
             div.innerHTML = `
@@ -1340,7 +1340,7 @@ class PhotoEditor {
             
             div.querySelector('.remove-btn').addEventListener('click', (e) => {
                 const idx = parseInt(e.target.dataset.index);
-                this.mergeImages.splice(idx, 1);
+                this.imagesToMerge.splice(idx, 1);
                 this.renderMergeList();
             });
             
@@ -1349,7 +1349,7 @@ class PhotoEditor {
     }
     
     mergeImages() {
-        if (this.mergeImages.length === 0) {
+        if (this.imagesToMerge.length === 0) {
             alert('请先添加要拼接的图片');
             return;
         }
@@ -1375,7 +1375,7 @@ class PhotoEditor {
             }
         }
         
-        this.mergeImages.forEach(item => {
+        this.imagesToMerge.forEach(item => {
             if (direction === 'horizontal') {
                 totalWidth += item.element.width + gap;
                 totalHeight = Math.max(totalHeight, item.element.height);
@@ -1425,7 +1425,7 @@ class PhotoEditor {
             }
         }
         
-        this.mergeImages.forEach(item => {
+        this.imagesToMerge.forEach(item => {
             let drawX = offsetX;
             let drawY = offsetY;
             
